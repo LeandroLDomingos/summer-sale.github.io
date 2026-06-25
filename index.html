@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lista de Jogos</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #101014;
+      color: #f4f4f5;
+    }
+
+    header {
+      padding: 32px 20px;
+      text-align: center;
+      background: linear-gradient(135deg, #1d1d27, #29293a);
+      border-bottom: 1px solid #333346;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+    }
+
+    header p {
+      margin: 0;
+      color: #b9b9c7;
+    }
+
+    .container {
+      width: min(1200px, 94%);
+      margin: 24px auto;
+    }
+
+    .filtros {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(160px, 1fr));
+      gap: 12px;
+      background: #181820;
+      padding: 16px;
+      border: 1px solid #2d2d3a;
+      border-radius: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: #c9c9d6;
+      margin-bottom: 6px;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #3a3a4a;
+      background: #0f0f15;
+      color: #fff;
+      outline: none;
+    }
+
+    button {
+      cursor: pointer;
+      background: #3d63ff;
+      border: none;
+      font-weight: bold;
+    }
+
+    button:hover {
+      filter: brightness(1.1);
+    }
+
+    .resumo {
+      margin: 18px 4px;
+      color: #c9c9d6;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 14px;
+    }
+
+    .card {
+      background: #181820;
+      border: 1px solid #2e2e3c;
+      border-radius: 14px;
+      padding: 16px;
+      transition: transform .15s, border-color .15s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: #4c6fff;
+    }
+
+    .card h3 {
+      margin: 0 0 12px;
+      font-size: 17px;
+      min-height: 42px;
+    }
+
+    .preco {
+      font-size: 22px;
+      font-weight: bold;
+      color: #7ee787;
+      margin-bottom: 10px;
+    }
+
+    .genero {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #262638;
+      color: #d7d7e8;
+      font-size: 12px;
+    }
+
+    .vazio {
+      text-align: center;
+      padding: 40px;
+      color: #aaa;
+      border: 1px dashed #444;
+      border-radius: 14px;
+      grid-column: 1 / -1;
+    }
+
+    @media (max-width: 900px) {
+      .filtros {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 520px) {
+      .filtros {
+        grid-template-columns: 1fr;
+        position: static;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Catálogo de Jogos</h1>
+    <p>Filtre por nome, gênero, valor e ordene como quiser.</p>
+  </header>
+
+  <main class="container">
+    <section class="filtros">
+      <div>
+        <label for="busca">Buscar por nome</label>
+        <input type="text" id="busca" placeholder="Ex: Resident Evil" />
+      </div>
+
+      <div>
+        <label for="genero">Gênero</label>
+        <select id="genero">
+          <option value="">Todos</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="valorMax">Valor máximo</label>
+        <input type="number" id="valorMax" min="0" step="0.01" placeholder="Ex: 100" />
+      </div>
+
+      <div>
+        <label for="ordenar">Ordenar por</label>
+        <select id="ordenar">
+          <option value="az">Nome A-Z</option>
+          <option value="za">Nome Z-A</option>
+          <option value="menor">Menor valor</option>
+          <option value="maior">Maior valor</option>
+        </select>
+      </div>
+
+      <div>
+        <label>&nbsp;</label>
+        <button onclick="limparFiltros()">Limpar filtros</button>
+      </div>
+    </section>
+
+    <p class="resumo" id="resumo"></p>
+    <section class="grid" id="lista"></section>
+  </main>
+
+  <script>
+    const jogos = [
+  {
+    "nome": "Resident Evil Requiem",
+    "valor": 239.2,
+    "genero": "Terror / Sobrevivência"
+  },
+  {
+    "nome": "Resident Evil 4",
+    "valor": 42.25,
+    "genero": "Terror / Sobrevivência"
+  },
+  {
+    "nome": "Resident Evil Village",
+    "valor": 42.25,
+    "genero": "Terror / Sobrevivência"
+  },
+  {
+    "nome": "Windrose",
+    "valor": 80.99,
+    "genero": "Outros"
+  },
+  {
+    "nome": "Tales of Berseria Remastered",
+    "valor": 130.42,
+    "genero": "RPG"
+  },
+  {
+    "nome": "Clair Obscur: Expedition 33",
+    "valor": 159.2,
+    "genero": "RPG"
+  },
+  {
+    "nome": "FINAL FANTASY VII REMAKE INTERGRADE",
+    "valor": 61.21,
+    "genero": "RPG"
+  },
+  {
+    "nome": "FINAL FANTASY VII REBIRTH",
+    "valor": 87.96,
+    "genero": "RPG"
+  },
+  {
+    "nome": "REANIMAL",
+    "valor": 80.99,
+    "genero": "Terror / Sobrevivência"
+  },
+  {
+    "nome": "Pathologic 3",
+    "valor": 71.39,
+    "genero": "Terror / Sobrevivência"
+  },
+  {
+    "nome": "Split Fiction",
+    "valor": 129.35,
+    "genero": "Outros"
+  },
+  {
+    "nome": "Diablo® IV",
+    "valor": 137.94,
+    "genero": "RPG"
+  },
+  {
+    "nome": "Nioh 3",
+    "valor": 244.3,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "ELDEN RING NIGHTREIGN",
+    "valor": 148.42,
+    "genero": "Outros"
+  },
+  {
+    "nome": "Marathon",
+    "valor": 115.43,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "Watch_Dogs® 2",
+    "valor": 7.49,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "Lords of the Fallen",
+    "valor": 39.59,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Hollow Knight: Silksong",
+    "valor": 44.99,
+    "genero": "Indie / Roguelike / Metroidvania"
+  },
+  {
+    "nome": "Hollow Knight",
+    "valor": 23.49,
+    "genero": "Indie / Roguelike / Metroidvania"
+  },
+  {
+    "nome": "Battlefield™ 6",
+    "valor": 149.5,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "Battlefield™ 2042",
+    "valor": 12.45,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "Battlefield™ 1 Revolution",
+    "valor": 9.95,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "Battlefield™ V",
+    "valor": 11.45,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "ARC Raiders",
+    "valor": 126.75,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "Europa Universalis V",
+    "valor": 207.89,
+    "genero": "Estratégia / Simulação"
+  },
+  {
+    "nome": "Anno 117: Pax Romana",
+    "valor": 209.99,
+    "genero": "Estratégia / Simulação"
+  },
+  {
+    "nome": "Dying Light: The Beast",
+    "valor": 164.34,
+    "genero": "Outros"
+  },
+  {
+    "nome": "Escape from Duckov",
+    "valor": 51.8,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "Escape from Tarkov",
+    "valor": 86.25,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "BALL x PIT",
+    "valor": 37.59,
+    "genero": "Indie / Roguelike / Metroidvania"
+  },
+  {
+    "nome": "Starfield",
+    "valor": 199.92,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "PowerWash Simulator 2",
+    "valor": 59.92,
+    "genero": "Estratégia / Simulação"
+  },
+  {
+    "nome": "Dispatch",
+    "valor": 71.19,
+    "genero": "Outros"
+  },
+  {
+    "nome": "Solo Leveling: ARISE OVERDRIVE",
+    "valor": 89.94,
+    "genero": "RPG"
+  },
+  {
+    "nome": "Borderlands 4",
+    "valor": 189.95,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "METAL GEAR SOLID Δ: SNAKE EATER",
+    "valor": 209.94,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "REMATCH",
+    "valor": 44.5,
+    "genero": "Esporte / Casual"
+  },
+  {
+    "nome": "PEAK",
+    "valor": 14.87,
+    "genero": "Esporte / Casual"
+  },
+  {
+    "nome": "Hell is Us",
+    "valor": 71.99,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Assassin’s Creed Shadows",
+    "valor": 157.49,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "Megabonk",
+    "valor": 21.44,
+    "genero": "Indie / Roguelike / Metroidvania"
+  },
+  {
+    "nome": "Red Dead Redemption",
+    "valor": 124.75,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "Red Dead Redemption 2",
+    "valor": 74.97,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "Baldur’s Gate 3",
+    "valor": 149.99,
+    "genero": "RPG"
+  },
+  {
+    "nome": "Sid Meier’s Civilization VII",
+    "valor": 174.95,
+    "genero": "Estratégia / Simulação"
+  },
+  {
+    "nome": "Kingdom Come: Deliverance II",
+    "valor": 119.9,
+    "genero": "RPG"
+  },
+  {
+    "nome": "Marvel’s Spider-Man 2",
+    "valor": 167.43,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Avowed",
+    "valor": 149.4,
+    "genero": "RPG"
+  },
+  {
+    "nome": "Like a Dragon: Pirate Yakuza in Hawaii",
+    "valor": 62.47,
+    "genero": "Outros"
+  },
+  {
+    "nome": "R.E.P.O.",
+    "valor": 19.49,
+    "genero": "Outros"
+  },
+  {
+    "nome": "Monster Hunter Wilds",
+    "valor": 117.18,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Monster Hunter Rise",
+    "valor": 33.8,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Monster Hunter: World",
+    "valor": 33.54,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "DRAGON BALL: Sparking! ZERO",
+    "valor": 141.25,
+    "genero": "Luta"
+  },
+  {
+    "nome": "Call of Duty®: Black Ops 7",
+    "valor": 174.95,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "Farming Simulator 25",
+    "valor": 107.96,
+    "genero": "Estratégia / Simulação"
+  },
+  {
+    "nome": "Indiana Jones e o Grande Círculo",
+    "valor": 209.4,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "S.T.A.L.K.E.R. 2: Heart of Chornobyl",
+    "valor": 167.3,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "Sons Of The Forest",
+    "valor": 26.69,
+    "genero": "Terror / Sobrevivência"
+  },
+  {
+    "nome": "The Forest",
+    "valor": 8.35,
+    "genero": "Terror / Sobrevivência"
+  },
+  {
+    "nome": "DEATH STRANDING DIRECTOR’S CUT",
+    "valor": 55.65,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Stellar Blade",
+    "valor": 167.43,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Dune: Awakening",
+    "valor": 107.4,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "DOOM: The Dark Ages",
+    "valor": 115.46,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "The Witcher 3: Wild Hunt – Complete Edition",
+    "valor": 31.99,
+    "genero": "RPG"
+  },
+  {
+    "nome": "Cyberpunk 2077",
+    "valor": 59.97,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "Forza Horizon 5",
+    "valor": 124.5,
+    "genero": "Corrida / Simulador"
+  },
+  {
+    "nome": "JDM: Japanese Drift Master",
+    "valor": 50.99,
+    "genero": "Corrida / Simulador"
+  },
+  {
+    "nome": "9 Kings",
+    "valor": 19.99,
+    "genero": "Estratégia / Simulação"
+  },
+  {
+    "nome": "The Elder Scrolls IV: Oblivion Remastered",
+    "valor": 185.43,
+    "genero": "RPG"
+  },
+  {
+    "nome": "Warhammer 40,000: Space Marine 2",
+    "valor": 59.97,
+    "genero": "Outros"
+  },
+  {
+    "nome": "Conan Exiles",
+    "valor": 74.61,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "DOOM",
+    "valor": 12.3,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "SONIC X SHADOW GENERATIONS",
+    "valor": 62.97,
+    "genero": "Plataforma"
+  },
+  {
+    "nome": "Metaphor: ReFantazio",
+    "valor": 119.96,
+    "genero": "RPG"
+  },
+  {
+    "nome": "Fallout 4: Game of the Year Edition",
+    "valor": 79.96,
+    "genero": "RPG"
+  },
+  {
+    "nome": "The Elder Scrolls V: Skyrim Special Edition",
+    "valor": 37.25,
+    "genero": "RPG"
+  },
+  {
+    "nome": "FINAL FANTASY XVI",
+    "valor": 87.96,
+    "genero": "RPG"
+  },
+  {
+    "nome": "Hades II",
+    "valor": 62.29,
+    "genero": "Indie / Roguelike / Metroidvania"
+  },
+  {
+    "nome": "Hades",
+    "valor": 18.49,
+    "genero": "Indie / Roguelike / Metroidvania"
+  },
+  {
+    "nome": "Grand Theft Auto: The Trilogy",
+    "valor": 98.96,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "Grand Theft Auto V Enhanced",
+    "valor": 74.95,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "Sekiro: Shadows Die Twice",
+    "valor": 137.0,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "God of War Ragnarök",
+    "valor": 167.43,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "God of War",
+    "valor": 79.96,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Ghost of Tsushima VERSÃO DO DIRETOR",
+    "valor": 149.94,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Horizon Forbidden West™ Complete Edition",
+    "valor": 124.95,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Horizon Zero Dawn™ Remastered",
+    "valor": 149.7,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Days Gone",
+    "valor": 79.8,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Returnal™",
+    "valor": 82.46,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "Marvel’s Spider-Man Remastered",
+    "valor": 99.96,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Marvel’s Spider-Man: Miles Morales",
+    "valor": 79.96,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "UNCHARTED™: Coleção Legado dos Ladrões",
+    "valor": 65.96,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "The Last of Us™ Part I",
+    "valor": 124.95,
+    "genero": "Terror / Sobrevivência"
+  },
+  {
+    "nome": "The Last of Us™ Parte II Remastered",
+    "valor": 159.92,
+    "genero": "Terror / Sobrevivência"
+  },
+  {
+    "nome": "HELLDIVERS™ 2",
+    "valor": 149.62,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "Until Dawn™",
+    "valor": 149.99,
+    "genero": "Terror / Sobrevivência"
+  },
+  {
+    "nome": "Satisfactory",
+    "valor": 75.59,
+    "genero": "Estratégia / Simulação"
+  },
+  {
+    "nome": "SILENT HILL 2",
+    "valor": 174.95,
+    "genero": "Terror / Sobrevivência"
+  },
+  {
+    "nome": "SILENT HILL f",
+    "valor": 174.95,
+    "genero": "Terror / Sobrevivência"
+  },
+  {
+    "nome": "Manor Lords",
+    "valor": 51.99,
+    "genero": "Estratégia / Simulação"
+  },
+  {
+    "nome": "TEKKEN 8",
+    "valor": 106.14,
+    "genero": "Luta"
+  },
+  {
+    "nome": "Avatar: Frontiers of Pandora",
+    "valor": 89.99,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "Alone in the Dark",
+    "valor": 35.63,
+    "genero": "Terror / Sobrevivência"
+  },
+  {
+    "nome": "DayZ",
+    "valor": 84.5,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "Blasphemous",
+    "valor": 13.39,
+    "genero": "Indie / Roguelike / Metroidvania"
+  },
+  {
+    "nome": "Blasphemous 2",
+    "valor": 27.25,
+    "genero": "Indie / Roguelike / Metroidvania"
+  },
+  {
+    "nome": "Sea of Stars",
+    "valor": 49.99,
+    "genero": "RPG"
+  },
+  {
+    "nome": "Street Fighter™ 6",
+    "valor": 89.5,
+    "genero": "Luta"
+  },
+  {
+    "nome": "NieR Replicant ver.1.22474487139",
+    "valor": 99.96,
+    "genero": "RPG"
+  },
+  {
+    "nome": "NieR:Automata™",
+    "valor": 42.8,
+    "genero": "RPG"
+  },
+  {
+    "nome": "Mortal Kombat 1",
+    "valor": 39.99,
+    "genero": "Luta"
+  },
+  {
+    "nome": "Lies of P",
+    "valor": 124.95,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Need for Speed™ Unbound",
+    "valor": 24.9,
+    "genero": "Corrida / Simulador"
+  },
+  {
+    "nome": "Dead Space Remake",
+    "valor": 37.25,
+    "genero": "Terror / Sobrevivência"
+  },
+  {
+    "nome": "Hi-Fi RUSH",
+    "valor": 54.5,
+    "genero": "Outros"
+  },
+  {
+    "nome": "No Man’s Sky",
+    "valor": 64.8,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "Mortal Kombat 11",
+    "valor": 22.99,
+    "genero": "Luta"
+  },
+  {
+    "nome": "Dead Cells",
+    "valor": 23.74,
+    "genero": "Indie / Roguelike / Metroidvania"
+  },
+  {
+    "nome": "Remnant II – Standard Edition",
+    "valor": 49.99,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "State of Decay 2: Juggernaut Edition",
+    "valor": 15.99,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "BioShock: The Collection",
+    "valor": 23.8,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "Don’t Starve Together",
+    "valor": 2.79,
+    "genero": "Outros"
+  },
+  {
+    "nome": "Tomb Raider Definitive Survivor Trilogy",
+    "valor": 44.99,
+    "genero": "Outros"
+  },
+  {
+    "nome": "Project Zomboid",
+    "valor": 40.19,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "Sonic Frontiers",
+    "valor": 74.2,
+    "genero": "Plataforma"
+  },
+  {
+    "nome": "Sifu",
+    "valor": 18.99,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Rust",
+    "valor": 59.99,
+    "genero": "Mundo Aberto / Sobrevivência"
+  },
+  {
+    "nome": "Devil May Cry 5",
+    "valor": 19.35,
+    "genero": "Ação / Aventura"
+  },
+  {
+    "nome": "Euro Truck Simulator 2",
+    "valor": 15.49,
+    "genero": "Corrida / Simulador"
+  },
+  {
+    "nome": "American Truck Simulator",
+    "valor": 15.49,
+    "genero": "Corrida / Simulador"
+  },
+  {
+    "nome": "Assetto Corsa Competizione",
+    "valor": 15.9,
+    "genero": "Corrida / Simulador"
+  },
+  {
+    "nome": "Far Cry® 4",
+    "valor": 8.99,
+    "genero": "Tiro / FPS"
+  },
+  {
+    "nome": "Call of Duty®: Modern Warfare® II",
+    "valor": 31.9,
+    "genero": "Tiro / FPS"
+  }
+];
+
+    const lista = document.getElementById("lista");
+    const resumo = document.getElementById("resumo");
+    const busca = document.getElementById("busca");
+    const genero = document.getElementById("genero");
+    const valorMax = document.getElementById("valorMax");
+    const ordenar = document.getElementById("ordenar");
+
+    const generos = [...new Set(jogos.map(jogo => jogo.genero))].sort();
+    generos.forEach(item => {
+      const option = document.createElement("option");
+      option.value = item;
+      option.textContent = item;
+      genero.appendChild(option);
+    });
+
+    function formatarMoeda(valor) {
+      return valor.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+    }
+
+    function renderizar() {
+      const textoBusca = busca.value.toLowerCase().trim();
+      const generoSelecionado = genero.value;
+      const maximo = parseFloat(valorMax.value);
+
+      let filtrados = jogos.filter(jogo => {
+        const nomeOk = jogo.nome.toLowerCase().includes(textoBusca);
+        const generoOk = !generoSelecionado || jogo.genero === generoSelecionado;
+        const valorOk = isNaN(maximo) || jogo.valor <= maximo;
+
+        return nomeOk && generoOk && valorOk;
+      });
+
+      switch (ordenar.value) {
+        case "az":
+          filtrados.sort((a, b) => a.nome.localeCompare(b.nome));
+          break;
+        case "za":
+          filtrados.sort((a, b) => b.nome.localeCompare(a.nome));
+          break;
+        case "menor":
+          filtrados.sort((a, b) => a.valor - b.valor);
+          break;
+        case "maior":
+          filtrados.sort((a, b) => b.valor - a.valor);
+          break;
+      }
+
+      resumo.textContent = `${filtrados.length} jogo(s) encontrado(s) de ${jogos.length} cadastrados.`;
+
+      lista.innerHTML = "";
+
+      if (filtrados.length === 0) {
+        lista.innerHTML = '<div class="vazio">Nenhum jogo encontrado com esses filtros.</div>';
+        return;
+      }
+
+      filtrados.forEach(jogo => {
+        const card = document.createElement("article");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>${jogo.nome}</h3>
+          <div class="preco">${formatarMoeda(jogo.valor)}</div>
+          <span class="genero">${jogo.genero}</span>
+        `;
+        lista.appendChild(card);
+      });
+    }
+
+    function limparFiltros() {
+      busca.value = "";
+      genero.value = "";
+      valorMax.value = "";
+      ordenar.value = "az";
+      renderizar();
+    }
+
+    busca.addEventListener("input", renderizar);
+    genero.addEventListener("change", renderizar);
+    valorMax.addEventListener("input", renderizar);
+    ordenar.addEventListener("change", renderizar);
+
+    renderizar();
+  </script>
+</body>
+</html>
